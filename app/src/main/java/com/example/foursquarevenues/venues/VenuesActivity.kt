@@ -1,23 +1,18 @@
 package com.example.foursquarevenues.venues
 
-import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
+import android.os.Handler
+import android.os.Looper
 import android.view.Menu
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.SearchView
-import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.foursquarevenues.*
 import com.example.foursquarevenues.data.Venue
 import com.google.android.gms.location.LocationServices
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
 
 class VenuesActivity : BaseActivity(), VenueView {
@@ -29,6 +24,9 @@ class VenuesActivity : BaseActivity(), VenueView {
 
     private lateinit var progressBar: ProgressBar
     private lateinit var venuesRv: RecyclerView
+
+    private val handler = Handler(Looper.getMainLooper())
+
 
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,6 +46,11 @@ class VenuesActivity : BaseActivity(), VenueView {
         invokeLocationAction()
     }
 
+    override fun onStop() {
+        super.onStop()
+        handler.removeCallbacksAndMessages(null)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         presenter.onDestroy()
@@ -62,18 +65,23 @@ class VenuesActivity : BaseActivity(), VenueView {
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 searchView.clearFocus()
-                query?.let {
-                    presenter.getVenues(it)
-                }
                 return true
             }
 
             override fun onQueryTextChange(query: String?): Boolean {
-                return false
+                query?.also { fetchVenuesForQuery(it) }
+                return true
             }
 
         })
         return true
+    }
+
+    private fun fetchVenuesForQuery(query: String) {
+        handler.removeCallbacksAndMessages(null)
+        handler.postDelayed({
+            presenter.getVenues(query)
+        }, 500)
     }
 
     override fun onVenuesReceived(venues: List<Venue>) {
@@ -102,6 +110,10 @@ class VenuesActivity : BaseActivity(), VenueView {
 
     }
 
+    override fun permissionGranted() {
+        presenter.getVenues("")
+    }
+
     override fun onError(resId: Int) {
         showError(getString(resId))
     }
@@ -112,97 +124,6 @@ class VenuesActivity : BaseActivity(), VenueView {
 
     override fun hideProgress() {
         progressBar.setGone()
-    }
-
-
-    // location permission code
-
-    private fun invokeLocationAction() {
-        when {
-            isPermissionsGranted() -> {
-                presenter.getVenues("")
-            }
-            shouldShowRequestPermissionRationale() -> {
-                showPermissionsRequiredMessage()
-            }
-            else -> {
-                requestLocationPermission()
-            }
-        }
-    }
-
-    private fun requestLocationPermission() {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ),
-            LOCATION_REQUEST
-        )
-    }
-
-    private fun isPermissionsGranted(): Boolean {
-        return ActivityCompat.checkSelfPermission(
-            this,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
-
-    private fun shouldShowRequestPermissionRationale(): Boolean {
-        return ActivityCompat.shouldShowRequestPermissionRationale(
-            this,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        )
-    }
-
-
-    @SuppressLint("MissingPermission")
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when (requestCode) {
-            LOCATION_REQUEST -> {
-                invokeLocationAction()
-            }
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == APP_SETTINGS_REQUEST)
-            invokeLocationAction()
-    }
-
-    companion object {
-        const val LOCATION_REQUEST = 100
-        const val APP_SETTINGS_REQUEST = 101
-    }
-
-    private fun launchApplicationSettingsPage() {
-        val intent = Intent()
-        intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-        val uri = Uri.fromParts("package", packageName, null)
-        intent.data = uri
-        startActivityForResult(
-            intent,
-            APP_SETTINGS_REQUEST
-        )
-    }
-
-    private fun showPermissionsRequiredMessage() {
-        MaterialAlertDialogBuilder(this)
-            .setMessage(getString(R.string.location_permission_required_message))
-            .setPositiveButton(getString(R.string.grant_permission)) { dialog, _ ->
-                dialog.dismiss()
-                launchApplicationSettingsPage()
-            }
-            .setCancelable(false)
-            .show()
     }
 
 }
