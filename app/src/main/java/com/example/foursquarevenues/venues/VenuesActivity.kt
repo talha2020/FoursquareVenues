@@ -1,19 +1,22 @@
 package com.example.foursquarevenues.venues
 
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.View
+import android.provider.Settings
 import android.widget.ProgressBar
 import android.widget.SearchView
+import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.foursquarevenues.*
 import com.example.foursquarevenues.data.Venue
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.launch
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
 
 class VenuesActivity : BaseActivity(), VenueView {
@@ -36,6 +39,8 @@ class VenuesActivity : BaseActivity(), VenueView {
 
         // TODO: Can we somehow inject this as well
         presenter = VenuePresenterImpl(this, getVenuesUseCase)
+
+        invokeLocationAction()
     }
 
     override fun onDestroy() {
@@ -102,5 +107,96 @@ class VenuesActivity : BaseActivity(), VenueView {
         progressBar.setGone()
     }
 
+
+    // location permission code
+
+    private fun invokeLocationAction() {
+        when {
+            isPermissionsGranted() -> {
+                // do nothing
+                //TODO: Maybe show a default list of venues?
+            }
+            shouldShowRequestPermissionRationale() -> {
+                showPermissionsRequiredMessage()
+            }
+            else -> {
+                requestLocationPermission()
+            }
+        }
+    }
+
+    private fun requestLocationPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ),
+            LOCATION_REQUEST
+        )
+    }
+
+    private fun isPermissionsGranted(): Boolean {
+        return ActivityCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+
+    private fun shouldShowRequestPermissionRationale(): Boolean {
+        return ActivityCompat.shouldShowRequestPermissionRationale(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
+    }
+
+
+    @SuppressLint("MissingPermission")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            LOCATION_REQUEST -> {
+                invokeLocationAction()
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == APP_SETTINGS_REQUEST)
+            invokeLocationAction()
+    }
+
+    companion object {
+        const val LOCATION_REQUEST = 100
+        const val APP_SETTINGS_REQUEST = 101
+    }
+
+    private fun launchApplicationSettingsPage() {
+        val intent = Intent()
+        intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+        val uri = Uri.fromParts("package", packageName, null)
+        intent.data = uri
+        startActivityForResult(
+            intent,
+            APP_SETTINGS_REQUEST
+        )
+    }
+
+    private fun showPermissionsRequiredMessage() {
+        MaterialAlertDialogBuilder(this)
+            .setMessage(getString(R.string.location_permission_required_message))
+            .setPositiveButton(getString(R.string.grant_permission)) { dialog, _ ->
+                dialog.dismiss()
+                launchApplicationSettingsPage()
+            }
+            .setCancelable(false)
+            .show()
+    }
 
 }

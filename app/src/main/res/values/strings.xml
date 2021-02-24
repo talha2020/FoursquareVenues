@@ -3,4 +3,6 @@
     <string name="venues">Venues</string>
     <string name="search">Search</string>
     <string name="no_venues_found">No venues found</string>
+    <string name="location_permission_required_message">Location permission is required to show the Venues. Grant permission in app settings.</string>
+    <string name="grant_permission">App settings</string>
 </resources>
