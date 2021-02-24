@@ -1,47 +1,52 @@
 package com.example.foursquarevenues.venues
 
-import android.annotation.SuppressLint
-import android.location.Location
 import com.example.foursquarevenues.R
+import com.example.foursquarevenues.coroutines.CoroutinesDispatcherProvider
 import com.example.foursquarevenues.network.ApiResponse.Failure
 import com.example.foursquarevenues.network.ApiResponse.Success
-import com.google.android.gms.location.FusedLocationProviderClient
+import com.example.foursquarevenues.venues.GetLocationUpdatesUseCase.LocationModel
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@SuppressLint("MissingPermission")
+@ExperimentalCoroutinesApi
 class VenuePresenterImpl @Inject constructor(
     _view: VenueView,
     private val getVenuesUseCase: GetVenuesUseCase,
-    private val fusedLocationClient: FusedLocationProviderClient
+    private val getLocationUpdatesUseCase: GetLocationUpdatesUseCase,
+    dispatcherProvider: CoroutinesDispatcherProvider
 ) : VenuePresenter {
 
-    private val coroutineScope = CoroutineScope(Dispatchers.Main)
+    // TODO: Explain the rationale of using continous location updates and not last location
 
     private var view: VenueView? = _view
+    private var location: LocationModel? = null
+    private val coroutineScope = CoroutineScope(dispatcherProvider.main)
+
+    init {
+        coroutineScope.launch {
+            getLocationUpdatesUseCase.run().collect {
+                location = it
+                //Log.d("locationFlow", "${it.latitude},${it.longitude}")
+            }
+        }
+    }
 
     override fun getVenues(query: String) {
-        view?.showProgress()
-        try {
-            //TODO: Location returned can be null if location cache has been cleared - handle null and explain the reasoning
-            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-                location?.also {
-                    getVenues(it.latitude, it.longitude, query)
-                }?: view?.onError(R.string.cannot_get_location)
-            }
-        } finally {
-            view?.hideProgress()
-        }
+        location?.also {
+            getVenues(it.latitude, it.longitude, query)
+        } ?: view?.onError(R.string.cannot_get_location)
     }
 
     override fun onDestroy() {
         view = null
-        coroutineScope.coroutineContext.cancelChildren()
+        coroutineScope.cancel()
     }
 
+    // TODO: Document that errors handling is not done fully
     private fun getVenues(lat: Double, lng: Double, query: String) {
         coroutineScope.launch {
             view?.showProgress()

@@ -1,6 +1,5 @@
 package com.example.foursquarevenues.venues
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -11,14 +10,20 @@ import android.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.foursquarevenues.*
+import com.example.foursquarevenues.coroutines.CoroutinesDispatcherProvider
 import com.example.foursquarevenues.data.Venue
-import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject
 
+@ExperimentalCoroutinesApi
 class VenuesActivity : BaseActivity(), VenueView {
 
     @Inject
     lateinit var getVenuesUseCase: GetVenuesUseCase
+
+    @Inject
+    lateinit var dispatcherProvider: CoroutinesDispatcherProvider
+
     lateinit var presenter: VenuePresenter
     private lateinit var adapter: GenericAdapter<Venue>
 
@@ -27,21 +32,21 @@ class VenuesActivity : BaseActivity(), VenueView {
 
     private val handler = Handler(Looper.getMainLooper())
 
-
-    @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         injector.inject(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // TODO: Maybe move this up and make sure we don't leak it.
-        val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-
         progressBar = findViewById(R.id.progressBar)
         venuesRv = findViewById(R.id.venuesRv)
 
-        // TODO: Can we somehow inject this as well
-        presenter = VenuePresenterImpl(this, getVenuesUseCase, fusedLocationProviderClient)
+        // Ideally these should be injected by dagger as well - leaving these as is to avoid over optimization for this assignment
+        presenter = VenuePresenterImpl(
+            this,
+            getVenuesUseCase,
+            GetLocationUpdatesUseCase(this),
+            dispatcherProvider
+        )
 
         invokeLocationAction()
     }
@@ -108,10 +113,6 @@ class VenuesActivity : BaseActivity(), VenueView {
             venuesRv.adapter = adapter
         }
 
-    }
-
-    override fun permissionGranted() {
-        presenter.getVenues("")
     }
 
     override fun onError(resId: Int) {

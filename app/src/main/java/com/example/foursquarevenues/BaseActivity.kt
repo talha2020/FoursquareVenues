@@ -16,7 +16,6 @@ abstract class BaseActivity : AppCompatActivity() {
     private val appComponent get() = (application as FourSquareVenuesApplication).appComponent
     protected val injector get() = appComponent
 
-
     /**
      * Location permission code.
      *
@@ -28,12 +27,11 @@ abstract class BaseActivity : AppCompatActivity() {
      * Also, used an aggressive approach for asking the permissions here. Assumption was that location permission is
      * required for the app to work. This can off-course be different depending on the app requirements.
      */
-    abstract fun permissionGranted()
 
     protected fun invokeLocationAction() {
         when {
             isPermissionsGranted() -> {
-                permissionGranted()
+                // Do nothing
             }
             shouldShowRequestPermissionRationale() -> {
                 showPermissionsRequiredMessage()
