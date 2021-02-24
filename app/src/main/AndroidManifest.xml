@@ -12,7 +12,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.FoursquareVenues">
-        <activity android:name=".venues.VenuesActivity">
+        <activity android:name=".venues.VenuesActivity"
+            android:label="@string/venues">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
