@@ -19,7 +19,7 @@ class GetVenuesUseCase @Inject constructor(private val foursquareApi: Foursquare
             try {
                 val response = foursquareApi.searchVenue("$lat,$lng", query)
                 if (response.isSuccessful && response.body() != null) {
-                    return@withContext ApiResponse.Success(response.body()!!.result.venues)
+                    return@withContext ApiResponse.Success(response.body()!!.result.venues.sortedBy { it.location.distance })
                 } else {
                     return@withContext ApiResponse.Failure
                 }

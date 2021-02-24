@@ -16,11 +16,11 @@ data class Venue(
     @SerializedName("id") val id: String,
     @SerializedName("name") val name: String,
     @SerializedName("location") val location: Location,
-    @SerializedName("distance") val distance: Double,
 )
 
 data class Location(
     @SerializedName("address") val address: String,
     @SerializedName("lat") val lat: Double,
-    @SerializedName("lng") val lng: Double
+    @SerializedName("lng") val lng: Double,
+    @SerializedName("distance") val distance: Double
 )

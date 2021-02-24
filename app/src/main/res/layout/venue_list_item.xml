@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/default_margin"
-        android:layout_marginTop="@dimen/default_margin"
+        android:layout_marginTop="@dimen/default_padding"
         android:textSize="@dimen/textsize_heading_6"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
@@ -29,6 +29,16 @@
         app:layout_constraintTop_toBottomOf="@+id/name"
         tools:text="2 Downing street" />
 
+    <TextView
+        android:id="@+id/distance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/default_margin"
+        android:textSize="@dimen/textsize_normal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/address"
+        tools:text="2 Downing street" />
+
 
     <View
         android:layout_width="match_parent"
@@ -37,6 +47,6 @@
         android:background="@color/divider"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/address" />
+        app:layout_constraintTop_toBottomOf="@+id/distance" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

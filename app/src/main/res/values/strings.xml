@@ -5,4 +5,8 @@
     <string name="no_venues_found">No venues found</string>
     <string name="location_permission_required_message">Location permission is required to show the Venues. Grant permission in app settings.</string>
     <string name="grant_permission">App settings</string>
+    <string name="cannot_get_location">Cannot get user location</string>
+    <string name="network_error">Network error</string>
+    <string name="km_away">%.2f km away</string>
+    <string name="m_away">%.0f m away</string>
 </resources>

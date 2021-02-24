@@ -1,9 +1,14 @@
 package com.example.foursquarevenues.venues
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.view.Menu
 import android.view.View
-import android.provider.Settings
 import android.widget.ProgressBar
 import android.widget.SearchView
 import androidx.core.app.ActivityCompat
@@ -11,11 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.foursquarevenues.*
 import com.example.foursquarevenues.data.Venue
-import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
+import com.google.android.gms.location.LocationServices
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
 
@@ -23,22 +24,26 @@ class VenuesActivity : BaseActivity(), VenueView {
 
     @Inject
     lateinit var getVenuesUseCase: GetVenuesUseCase
-
     lateinit var presenter: VenuePresenter
+    private lateinit var adapter: GenericAdapter<Venue>
 
     private lateinit var progressBar: ProgressBar
     private lateinit var venuesRv: RecyclerView
 
+    @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         injector.inject(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // TODO: Maybe move this up and make sure we don't leak it.
+        val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+
         progressBar = findViewById(R.id.progressBar)
         venuesRv = findViewById(R.id.venuesRv)
 
         // TODO: Can we somehow inject this as well
-        presenter = VenuePresenterImpl(this, getVenuesUseCase)
+        presenter = VenuePresenterImpl(this, getVenuesUseCase, fusedLocationProviderClient)
 
         invokeLocationAction()
     }
@@ -58,7 +63,7 @@ class VenuesActivity : BaseActivity(), VenueView {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 searchView.clearFocus()
                 query?.let {
-                    presenter.getVenues(40.7243, -74.0018, it)
+                    presenter.getVenues(it)
                 }
                 return true
             }
@@ -76,27 +81,29 @@ class VenuesActivity : BaseActivity(), VenueView {
             showError(getString(R.string.no_venues_found))
             return
         }
-        //TODO: Avoid creating a new adapter everytime
-        // normally i would update the recycler view items and then notify the adapter. Leaving it like this due to shortage of time.
 
-        val adapter = object : GenericAdapter<Venue>(venues) {
-            override fun getLayoutId(position: Int, obj: Venue): Int {
-                return R.layout.venue_list_item
-            }
+        if (::adapter.isInitialized) {
+            adapter.setItems(venues)
+        } else {
+            val adapter = object : GenericAdapter<Venue>(venues) {
+                override fun getLayoutId(position: Int, obj: Venue): Int {
+                    return R.layout.venue_list_item
+                }
 
-            override fun getViewHolder(view: View, viewType: Int): RecyclerView.ViewHolder {
-                return VenuesListViewHolder(view, onItemClick = {
-                    showError(it.name + " clicked")
-                })
+                override fun getViewHolder(view: View, viewType: Int): RecyclerView.ViewHolder {
+                    return VenuesListViewHolder(view, onItemClick = {
+                        showError(it.name + " clicked")
+                    })
+                }
             }
+            venuesRv.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+            venuesRv.adapter = adapter
         }
 
-        venuesRv.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        venuesRv.adapter = adapter
     }
 
-    override fun onError() {
-        showError("Unknown error.")
+    override fun onError(resId: Int) {
+        showError(getString(resId))
     }
 
     override fun showProgress() {
@@ -113,8 +120,7 @@ class VenuesActivity : BaseActivity(), VenueView {
     private fun invokeLocationAction() {
         when {
             isPermissionsGranted() -> {
-                // do nothing
-                //TODO: Maybe show a default list of venues?
+                presenter.getVenues("")
             }
             shouldShowRequestPermissionRationale() -> {
                 showPermissionsRequiredMessage()
