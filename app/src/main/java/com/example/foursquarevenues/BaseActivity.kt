@@ -28,10 +28,12 @@ abstract class BaseActivity : AppCompatActivity() {
      * required for the app to work. This can off-course be different depending on the app requirements.
      */
 
+    abstract fun permissionGranted()
+
     protected fun invokeLocationAction() {
         when {
             isPermissionsGranted() -> {
-                // Do nothing
+                permissionGranted()
             }
             shouldShowRequestPermissionRationale() -> {
                 showPermissionsRequiredMessage()

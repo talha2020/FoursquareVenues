@@ -105,7 +105,7 @@ class VenuesActivity : BaseActivity(), VenueView {
 
                 override fun getViewHolder(view: View, viewType: Int): RecyclerView.ViewHolder {
                     return VenuesListViewHolder(view, onItemClick = {
-                        showError(it.name + " clicked")
+                        showError("${it.name} tapped")
                     })
                 }
             }
@@ -113,6 +113,12 @@ class VenuesActivity : BaseActivity(), VenueView {
             venuesRv.adapter = adapter
         }
 
+    }
+
+    override fun permissionGranted() {
+        // In case of multiple permissions we an pass the permission type here
+        // Kept it simple here
+        presenter.startLocationUpdates()
     }
 
     override fun onError(resId: Int) {

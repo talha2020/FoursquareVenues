@@ -24,21 +24,30 @@ class VenuePresenterImpl @Inject constructor(
 
     private var view: VenueView? = _view
     private var location: LocationModel? = null
-    private val coroutineScope = CoroutineScope(dispatcherProvider.main)
-
-    init {
-        coroutineScope.launch {
-            getLocationUpdatesUseCase.run().collect {
-                location = it
-                //Log.d("locationFlow", "${it.latitude},${it.longitude}")
+        set(value) {
+            if (field == null) {
+                // Get the venues when we receive location first time
+                value?.let { location ->
+                    getVenues(location.latitude, location.longitude, "")
+                }
             }
+            field = value
         }
-    }
+
+    private val coroutineScope = CoroutineScope(dispatcherProvider.main)
 
     override fun getVenues(query: String) {
         location?.also {
             getVenues(it.latitude, it.longitude, query)
         } ?: view?.onError(R.string.cannot_get_location)
+    }
+
+    override fun startLocationUpdates() {
+        coroutineScope.launch {
+            getLocationUpdatesUseCase.run().collect {
+                location = it
+            }
+        }
     }
 
     override fun onDestroy() {
