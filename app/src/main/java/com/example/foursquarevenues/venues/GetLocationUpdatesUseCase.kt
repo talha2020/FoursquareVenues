@@ -11,6 +11,10 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.callbackFlow
 
+/**
+ * This UseCase is used to get a Flow of location.
+ * Update interval and accuracy can be adjust.
+ */
 @ExperimentalCoroutinesApi
 @SuppressLint("MissingPermission")
 class GetLocationUpdatesUseCase(context: Context) {

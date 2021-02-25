@@ -3,8 +3,7 @@ package com.example.foursquarevenues.network
 
 sealed class ApiResponse<out T>{
     data class Success<out T>(val data: T) : ApiResponse<T>()
-    object Failure: ApiResponse<Nothing>()
 
-    //TODO: Maybe add the reason to the failure later on
-    //data class Failure(val reason: String) : ApiResponse<Nothing>()
+    // In actual app I would return a message and an exception within the failure class
+    object Failure: ApiResponse<Nothing>()
 }

@@ -20,8 +20,6 @@ class VenuePresenterImpl @Inject constructor(
     dispatcherProvider: CoroutinesDispatcherProvider
 ) : VenuePresenter {
 
-    // TODO: Explain the rationale of using continous location updates and not last location
-
     private var view: VenueView? = _view
     private var location: LocationModel? = null
         set(value) {
@@ -55,7 +53,6 @@ class VenuePresenterImpl @Inject constructor(
         coroutineScope.cancel()
     }
 
-    // TODO: Document that errors handling is not done fully
     private fun getVenues(lat: Double, lng: Double, query: String) {
         coroutineScope.launch {
             view?.showProgress()

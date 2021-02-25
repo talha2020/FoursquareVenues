@@ -21,6 +21,8 @@ class GetVenuesUseCase @Inject constructor(private val foursquareApi: Foursquare
                 if (response.isSuccessful && response.body() != null) {
                     return@withContext ApiResponse.Success(response.body()!!.result.venues.sortedBy { it.location.distance })
                 } else {
+                    // Not doing full error handling here and just returning the Failure object
+                    // In production app I'll consider all the scenarios and make sure all of them are handled properly.
                     return@withContext ApiResponse.Failure
                 }
             } catch (t: Throwable) {

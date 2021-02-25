@@ -12,6 +12,10 @@ import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
 
 @ExperimentalCoroutinesApi
+/**
+ * Tests the venue presenter. Since we don't have a lot of logic besides basic plumbing,
+ * It tests if the right methods are called with right parameters in response to the user inputs.
+ */
 class VenuePresenterTest {
 
     private val view: VenueView = mock()

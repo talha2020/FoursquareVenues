@@ -17,6 +17,12 @@ import org.junit.Test
 import retrofit2.Response
 import com.example.foursquarevenues.data.Response as VenueResponse1
 
+/**
+ * Tests for GetVenuesUseCase. Most of the application business logic should be encapsulated in
+ * compact UseCases/Interactors. This tests the actual logic of retrieving venues.
+ * Since the logic was not that complicated, it only has a few tests but obviously more tests
+ * can be added for complex scenarios.
+ */
 class GetVenuesUseCaseTest {
 
     private val foursquareApi: FoursquareApi = mock {
