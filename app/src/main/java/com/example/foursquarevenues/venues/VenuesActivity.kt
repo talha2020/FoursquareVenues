@@ -24,6 +24,9 @@ class VenuesActivity : BaseActivity(), VenueView {
     @Inject
     lateinit var dispatcherProvider: CoroutinesDispatcherProvider
 
+    @Inject
+    lateinit var getLocationUpdatesUseCase: GetLocationUpdatesUseCase
+
     lateinit var presenter: VenuePresenter
     private lateinit var adapter: GenericAdapter<Venue>
 
@@ -40,11 +43,11 @@ class VenuesActivity : BaseActivity(), VenueView {
         progressBar = findViewById(R.id.progressBar)
         venuesRv = findViewById(R.id.venuesRv)
 
-        // Ideally these should be injected by dagger as well - leaving these as is to avoid over optimization for this assignment
+        // Ideally this should be injected by dagger as well - leaving these as is to avoid over optimization for this assignment
         presenter = VenuePresenterImpl(
             this,
             getVenuesUseCase,
-            GetLocationUpdatesUseCase(this),
+            getLocationUpdatesUseCase,
             dispatcherProvider
         )
 

@@ -14,7 +14,13 @@ abstract class BaseActivity : AppCompatActivity() {
 
     // Dependency injection
     private val appComponent get() = (application as FourSquareVenuesApplication).appComponent
-    protected val injector get() = appComponent
+    private val presentationComponent by lazy {
+        appComponent.newActivityComponentBuilder()
+            .activity(this)
+            .build()
+    }
+
+    protected val injector get() = presentationComponent
 
     /**
      * Location permission code.

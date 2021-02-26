@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.callbackFlow
 @SuppressLint("MissingPermission")
 class GetLocationUpdatesUseCase(context: Context) {
 
-    private var fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+    private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 
     fun run() = callbackFlow<LocationModel> {
         val locationCallback = object : LocationCallback() {
