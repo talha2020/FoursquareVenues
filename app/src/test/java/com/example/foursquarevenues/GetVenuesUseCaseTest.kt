@@ -32,7 +32,10 @@ class GetVenuesUseCaseTest {
     private val getVenuesUseCase: GetVenuesUseCase
 
     init {
-        getVenuesUseCase = GetVenuesUseCase(foursquareApi)
+        getVenuesUseCase = GetVenuesUseCase(
+            foursquareApi,
+            provideFakeCoroutinesDispatcherProvider()
+        )
     }
 
     @Test

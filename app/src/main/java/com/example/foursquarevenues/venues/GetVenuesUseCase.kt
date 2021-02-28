@@ -1,21 +1,23 @@
 package com.example.foursquarevenues.venues
 
+import com.example.foursquarevenues.coroutines.CoroutinesDispatcherProvider
 import com.example.foursquarevenues.data.Venue
 import com.example.foursquarevenues.network.ApiResponse
 import com.example.foursquarevenues.network.FoursquareApi
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class GetVenuesUseCase @Inject constructor(private val foursquareApi: FoursquareApi) {
-
+class GetVenuesUseCase @Inject constructor(
+    private val foursquareApi: FoursquareApi,
+    private val dispatcherProvider: CoroutinesDispatcherProvider
+) {
     suspend fun run(
         lat: Double,
         lng: Double,
         query: String
     ): ApiResponse<List<Venue>> =
-        withContext(Dispatchers.IO) {
+        withContext(dispatcherProvider.io) {
             try {
                 val response = foursquareApi.searchVenue("$lat,$lng", query)
                 if (response.isSuccessful && response.body() != null) {

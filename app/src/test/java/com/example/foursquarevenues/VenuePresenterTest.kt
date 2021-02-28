@@ -35,14 +35,17 @@ class VenuePresenterTest {
             getLocationUpdatesUseCase,
             provideFakeCoroutinesDispatcherProvider()
         )
+        // Start location updates and push a dummy value
+        venuePresenter.startLocationUpdates()
+        locationUpdatesFlow.value = LocationModel(40.0, 50.0)
     }
 
     @Test
-    fun `should call show and hide progress exactly once`() = runBlockingTest {
-        venuePresenter.getVenues("pizza")
-        verify(view, times(1)).showProgress()
-        verify(view, times(1)).hideProgress()
-    }
+    fun `should call show and hide progress exactly once upon receiving first location`() =
+        runBlockingTest {
+            verify(view, times(1)).showProgress()
+            verify(view, times(1)).hideProgress()
+        }
 
     @Test
     fun `should call getVenues with right parameters`() = runBlockingTest {
